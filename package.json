@@ -3,15 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "react": "^16.5.2",
-    "react-dom": "^16.5.2",
-    "react-scripts": "2.0.4"
+    "apollo-client-preset": "^1.0.6",
+    "apollo-link-ws": "^1.0.4",
+    "express": "^4.16.3",
+    "express-graphql": "^0.6.12",
+    "graphql": "^0.12.3",
+    "graphql-tag": "^2.6.1",
+    "react": "^16.2.0",
+    "react-apollo": "^2.0.4",
+    "react-dom": "^16.2.0",
+    "react-scripts": "1.0.17",
+    "subscriptions-transport-ws": "^0.9.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "server": "tsc && node dist/server.js"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -21,5 +30,13 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "devDependencies": {
+    "@types/express": "^4.16.0",
+    "@types/express-graphql": "^0.6.1",
+    "@types/graphql": "^14.0.1",
+    "@types/react": "^16.4.15",
+    "@types/react-dom": "^16.0.8",
+    "typescript": "^3.1.1"
+  }
 }
