@@ -1,5 +1,5 @@
 "use strict";
-//@ts-nocheck
+// @ts-nocheck
 // In production, we register a service worker to serve assets from local cache.
 Object.defineProperty(exports, "__esModule", { value: true });
 // This lets the app load faster on subsequent visits in production, and gives
