@@ -5,63 +5,87 @@ var graphqlHTTP = require("express-graphql");
 var crypto = require("crypto");
 var graphql_1 = require("graphql");
 // Construct a schema, using GraphQL schema language
-var schema = graphql_1.buildSchema("\n  type User {\n    id: ID!\n  }\n\n  type Chat {\n    id: ID!\n    content: String\n    from: ID!\n    to: ID!\n  }\n\n  type Query {\n    getChats(from: ID!, to: ID!): [Chat]!\n    getLastChat(from: ID!, to: ID!): Chat\n  }\n\n  type Mutation {\n    createUser: User\n    sendChat(from: ID!, to: ID!, content: String): Chat\n  }\n");
+var schema = graphql_1.buildSchema("\n  type User {\n    id: ID!\n    username: String\n  }\n\n  type Chat {\n    id: ID!\n    content: String\n    from: User!\n  }\n\n  type Conversation {\n    id: ID!\n    members: [User!]!\n    chats: [Chat]!\n  }\n\n  type Operation {\n    success: Boolean\n  }\n\n  type Query {\n    getChats(conversationId: ID!): [Chat]!\n    getConversations(userId: ID!): [Conversation]!\n  }\n\n  type Mutation {\n    createUser(username: String!): User!\n    sendChat(from: ID!, conversationId: ID!, content: String): Chat!\n    createConversation(members: [ID!]!): Conversation!\n  }\n");
 var Chat = /** @class */ (function () {
-    function Chat(id, content, to, from) {
+    function Chat(id, content, from) {
         this.id = id;
         this.content = content;
-        this.to = to;
         this.from = from;
     }
     return Chat;
 }());
-var User = /** @class */ (function () {
-    function User(id) {
+var Conversation = /** @class */ (function () {
+    function Conversation(id, members) {
         this.id = id;
+        this.members = members;
+        this.chats = [];
+    }
+    return Conversation;
+}());
+var User = /** @class */ (function () {
+    function User(id, username) {
+        this.id = id;
+        this.username = username;
     }
     return User;
 }());
-var database = {};
+var database = { users: {}, conversations: {} };
 // The root provides a resolver function for each API endpoint
 var root = {
-    createUser: function () {
+    createUser: function (_a) {
+        var username = _a.username;
         var id = crypto.randomBytes(20).toString("hex");
-        database[id] = {};
-        console.clear();
-        console.log(database);
-        return new User(id);
+        var user = new User(id, username);
+        database.users[id] = { user: user, conversations: [] };
+        return user;
+    },
+    createConversation: function (_a) {
+        var members = _a.members;
+        var id = crypto.randomBytes(20).toString("hex");
+        var users = members.map(function (id) {
+            if (database.users[id]) {
+                return database.users[id].user;
+            }
+            else {
+                throw new Error("User not found");
+            }
+        });
+        var conversation = new Conversation(id, users);
+        database.conversations[id] = conversation;
+        members.forEach(function (member) {
+            database.users[member].conversations.push(id);
+        });
+        return conversation;
     },
     sendChat: function (_a) {
-        var to = _a.to, from = _a.from, content = _a.content;
+        var from = _a.from, conversationId = _a.conversationId, content = _a.content;
         var id = crypto.randomBytes(20).toString("hex");
-        var chat = new Chat(id, content, to, from);
-        if (database[from][to]) {
-            database[from][to].push(chat);
+        if (database.users[from]) {
+            var chat = new Chat(id, content, database.users[from].user);
+            database.conversations[conversationId].chats.push(chat);
+            return chat;
         }
         else {
-            database[from][to] = [chat];
+            throw new Error("User not found");
         }
-        if (database[to][from]) {
-            database[to][from].push(chat);
-        }
-        else {
-            database[to][from] = [chat];
-        }
-        console.clear();
-        console.log(database);
-        return chat;
     },
     getChats: function (_a) {
-        var to = _a.to, from = _a.from;
-        console.log("to: " + to, "from: " + from);
-        return database[to][from] || new Array();
-    },
-    getLastChat: function (_a) {
-        var to = _a.to, from = _a.from;
-        if (!database[to][from][database[to][from].length - 1]) {
-            throw new Error("No chat found");
+        var conversationId = _a.conversationId;
+        if (database.conversations[conversationId]) {
+            return database.conversations[conversationId].chats;
         }
-        return database[to][from][database[to][from].length - 1];
+        else {
+            throw new Error("Conversation not found");
+        }
+    },
+    getConversations: function (_a) {
+        var userId = _a.userId;
+        if (database.users[userId]) {
+            return database.users[userId].conversations.map(function (id) { return database.conversations[id]; });
+        }
+        else {
+            throw new Error("User not found");
+        }
     }
 };
 var app = express();
