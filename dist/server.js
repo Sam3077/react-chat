@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-var express = require("express");
-var graphqlHTTP = require("express-graphql");
+var express_1 = __importDefault(require("express"));
+var express_graphql_1 = __importDefault(require("express-graphql"));
 var crypto = require("crypto");
 var graphql_1 = require("graphql");
 // Construct a schema, using GraphQL schema language
@@ -88,9 +91,9 @@ var root = {
         }
     }
 };
-var app = express();
+var app = express_1.default();
 var endpoint = "/graphql";
-app.use(endpoint, graphqlHTTP({
+app.use(endpoint, express_graphql_1.default({
     schema: schema,
     rootValue: root,
     graphiql: true

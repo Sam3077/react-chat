@@ -1,0 +1,19 @@
+# import User from './generated/prisma.graphql'
+# import Chat from './generated/prisma.graphql'
+# import Conversation from './generated/prisma.graphql'
+# import ConversationSubscriptionPayload from './generated/prisma.graphql'
+
+type Query {
+  user(userId: ID!): User
+  conversation(conversationId: ID!): Conversation
+}
+
+type Mutation {
+  signup(username: String!): User!
+  sendChat(from: ID!, conversationId: ID!, content: String): Conversation!
+  newConversation(userIds: [ID!]!): Conversation!
+}
+
+type Subscription {
+  conversations(userId: ID!): ConversationSubscriptionPayload
+}

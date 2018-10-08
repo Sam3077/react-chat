@@ -1,5 +1,6 @@
-const express = require("express");
-const graphqlHTTP = require("express-graphql");
+import express from "express";
+import graphqlHTTP from "express-graphql";
+import jwt from "jsonwebtoken";
 const crypto = require("crypto");
 import { buildSchema } from "graphql";
 
@@ -20,10 +21,6 @@ const schema = buildSchema(`
     id: ID!
     members: [User!]!
     chats: [Chat]!
-  }
-
-  type Operation {
-    success: Boolean
   }
 
   type Query {
@@ -132,7 +129,11 @@ const root = {
       throw new Error("User not found");
     }
   },
-  getChats: function({ conversationId }: { conversationId: string }): Chat[] {
+  getChats: function(
+    { conversationId }: { conversationId: string },
+    root: any,
+    ctx: { token: string }
+  ): Chat[] {
     if (database.conversations[conversationId]) {
       return database.conversations[conversationId].chats;
     } else {
@@ -154,11 +155,12 @@ const app = express();
 const endpoint = "/graphql";
 app.use(
   endpoint,
-  graphqlHTTP({
+  graphqlHTTP(request => ({
     schema: schema,
     rootValue: root,
-    graphiql: true
-  })
+    graphiql: true,
+    context: { token: request.headers.authorization || "" }
+  }))
 );
 app.listen(4000);
 console.log("Running a GraphQL API server at localhost:4000" + endpoint);

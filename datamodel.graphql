@@ -1,0 +1,17 @@
+type User {
+  id: ID! @unique
+  username: String
+  conversations: [Conversation!]!
+}
+
+type Chat {
+  id: ID! @unique
+  content: String
+  from: User!
+}
+
+type Conversation {
+  id: ID! @unique
+  users: [User!]!
+  chats: [Chat!]!
+}
