@@ -1,32 +1,33 @@
 // @ts-nocheck
-const { GraphQLServer } = require("graphql-yoga");
+const { GraphQLServer, PubSub } = require("graphql-yoga");
+const WebSocket = require("ws");
 const { Prisma } = require("prisma-binding");
 
 const resolvers = {
   Subscription: {
-    conversations: (_, args, context, info) => {
-      console.log("made it here!");
-      return context.prisma.subsciption.conversation(
-        {
-          where: {
-            node: {
-              user_some: {
-                id: args.userId
+    conversations: {
+      subscribe: (_, args, context, info) => {
+        return context.prisma.subscription.conversation(
+          {
+            where: {
+              node: {
+                users_some: { id: args.userId }
               }
             }
-          }
-        },
-        "{ node { id chats { from { username } content } } }"
-      );
+          },
+          "{ node { id chats { content from { username } } } }"
+        );
+      },
+      resolve: (payload, args, context, info) => {
+        return payload ? payload.conversation : payload; // sanity check
+      }
     }
   },
   Query: {
-    user: (_, args, context, info) => {
+    login: (_, args, context, info) => {
       return context.prisma.query.user(
-        {
-          where: { id: args.userId }
-        },
-        "{ username conversations { id users { username } } }"
+        { where: { email: args.email } },
+        "{ id username conversations { id users { username } } }"
       );
     },
     conversation: (_, args, context, info) => {
@@ -34,7 +35,21 @@ const resolvers = {
         {
           where: { id: args.conversationId }
         },
-        "{ chats { content from { username } } }"
+        "{ users { username } chats { content from { username } } }"
+      );
+    },
+    searchUsers: (_, args, context, info) => {
+      const identifier = args.identifier.toLowerCase();
+      return context.prisma.query.users(
+        {
+          where: {
+            OR: [
+              { email_starts_with: identifier },
+              { username_lower_starts_with: identifier }
+            ]
+          }
+        },
+        "{ username email }"
       );
     }
   },
@@ -60,34 +75,49 @@ const resolvers = {
       );
     },
     newConversation: (_, args, context, info) => {
+      if (args.emails.length < 2) {
+        throw new Error("Conversation must have at lease 2 members");
+      }
       const conversation = context.prisma.mutation.createConversation(
         {
           data: {
             users: {
-              connect: args.userIds.map(id => ({ id: id }))
+              connect: args.emails.map(email => ({ email: email }))
             }
           }
         },
         info
       );
 
-      context.prisma.mutation.updateManyUsers({
-        where: {
-          OR: args.userIds.map(id => ({ id: id }))
-        },
-        data: {
-          conversations: {
-            connect: { id: conversation.id }
+      context.prisma.mutation.updateManyUsers(
+        {
+          where: {
+            OR: args.emails.map(email => ({ email: email }))
+          },
+          data: {
+            conversations: {
+              connect: { id: conversation.id }
+            }
           }
-        }
-      });
+        },
+        "{ id users { username } }"
+      );
       return conversation;
     },
     signup: (_, args, context, info) => {
+      const email = args.email.toLowerCase();
+      if (args.username.includes("@")) {
+        throw new Error("Usernames may not contain the @ symbol");
+      }
+      if (!email.includes("@") || !email.includes(".")) {
+        throw new Error("Invalid email");
+      }
       return context.prisma.mutation.createUser(
         {
           data: {
-            username: args.username
+            email: email,
+            username: args.username,
+            username_lower: args.username.toLowerCase()
           }
         },
         info
@@ -103,7 +133,8 @@ const server = new GraphQLServer({
     ...req,
     prisma: new Prisma({
       typeDefs: "src/generated/prisma.graphql",
-      endpoint: "http://localhost:4466"
+      endpoint: "http://localhost:4466",
+      secret: "thisismysecret225"
     })
   })
 });

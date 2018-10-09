@@ -4,14 +4,15 @@
 # import ConversationSubscriptionPayload from './generated/prisma.graphql'
 
 type Query {
-  user(userId: ID!): User
   conversation(conversationId: ID!): Conversation
+  login(email: String!): User
+  searchUsers(identifier: String!): [User]
 }
 
 type Mutation {
-  signup(username: String!): User!
+  signup(username: String!, email: String!): User!
   sendChat(from: ID!, conversationId: ID!, content: String): Conversation!
-  newConversation(userIds: [ID!]!): Conversation!
+  newConversation(emails: [String!]!): Conversation!
 }
 
 type Subscription {

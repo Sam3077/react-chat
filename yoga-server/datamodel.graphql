@@ -1,0 +1,20 @@
+type User {
+  id: ID! @unique
+  username: String!
+  username_lower: String!
+  email: String! @unique
+  conversations: [Conversation!]!
+    @relation(name: "ConversationsByUser", onDelete: SET_NULL)
+}
+
+type Chat {
+  id: ID! @unique
+  content: String
+  from: User!
+}
+
+type Conversation {
+  id: ID! @unique
+  users: [User!]! @relation(name: "ConversationsByUser")
+  chats: [Chat!]! @relation(name: "ChatsInConversation", onDelete: CASCADE)
+}
