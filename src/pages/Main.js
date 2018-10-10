@@ -11,6 +11,7 @@ import { httpEndpoint, wsEndpoint } from "../currentEndpoint";
 
 const SuperContainer = styled.div`
   width: 100vw;
+  max-width: 100vw;
   height: 100vh;
   display: flex;
   flex-diretion: row;
@@ -20,11 +21,13 @@ const ListContainer = styled.div`
   border-color: rgba(255, 255, 255, 0.5);
   border-width: 1px;
   height: 100vh;
-  width: 500px;
+  min-width: 250px;
   overflow-y: scroll;
+  flex: 1;
 `;
 const ConversationContainer = styled.div`
-  width: 100%;
+  flex: 2;
+  overflow-x: auto;
 `;
 const SearchContainer = styled.div`
     position: absolute;
@@ -73,10 +76,6 @@ class Main extends Component {
 
   componentWillMount() {
     const client = new SubscriptionClient(wsEndpoint, {
-      headers: {
-        Authorization:
-          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InNlcnZpY2UiOiJkZWZhdWx0QGRlZmF1bHQiLCJyb2xlcyI6WyJhZG1pbiJdfSwiaWF0IjoxNTM5MTk1OTI2LCJleHAiOjE1Mzk4MDA3MjZ9.hNaku3QzydaRc4lMzcXTVNaJxD4MjrWFPBHAVe82mhU"
-      },
       reconnect: true
     });
 
@@ -130,7 +129,6 @@ class Main extends Component {
       `;
     client.request({ query: subscriptionQuery }).subscribe({
       next: x => {
-        console.log(x);
         const index = this.state.conversations.findIndex(
           element => element.id === x.data.conversations.node.id
         );

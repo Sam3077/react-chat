@@ -6,14 +6,15 @@ import { GraphQLClient } from "graphql-request";
 import { httpEndpoint } from "../currentEndpoint";
 
 const Wrapper = styled.div`
-  max-width: 100%;
   height: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  overflow-x: hidden;
 `;
 const Input = styled.input`
-  width: 100%;
+  maxwidth: 100%;
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
   height: 40px;
@@ -49,6 +50,20 @@ const Title = styled.h5`
   background-color: rgba(255, 255, 255, 0.15);
   width: 100%;
 `;
+const Messages = styled.div`
+  overflow-y: scroll;
+  height: 100%;
+  padding-left: 10px;
+  margin-right: 10px;
+`;
+const SingleMessage = styled.p`
+  max-width: 100%;
+  word-break: break-word;
+  border-bottom-style: dotted;
+  border-color: rgba(255, 255, 255, 0.2);
+  borer-width: 1px;
+  padding-bottom: 25px;
+`;
 
 export default class Conversation extends Component {
   static propTypes = { data: PropTypes.object };
@@ -76,15 +91,10 @@ export default class Conversation extends Component {
             <Title key="title">
               {data.conversationData.users
                 .filter(user => user.email !== data.email)
-                .map(user => user.email)
+                .map(user => user.username)
                 .join(", ")}
             </Title>,
-            <div
-              key="1"
-              style={{ overflowY: "scroll", height: "100%" }}
-              id="messagesContainer"
-              key="container"
-            >
+            <Messages key="1" id="messagesContainer" key="container">
               {data.conversationData.chats.map((chat, index) => {
                 let from;
                 if (chat.from.email === data.email) {
@@ -93,12 +103,12 @@ export default class Conversation extends Component {
                   from = chat.from.username;
                 }
                 return (
-                  <p key={index}>
-                    <i>{from}</i>: {chat.content}
-                  </p>
+                  <SingleMessage key={index}>
+                    <i>{from}</i>: {decodeURI(chat.content)}
+                  </SingleMessage>
                 );
               })}
-            </div>,
+            </Messages>,
             <form
               key="form"
               onSubmit={e => {
@@ -138,7 +148,7 @@ export default class Conversation extends Component {
 
   sendMessage = () => {
     const input = document.getElementById("messageContainer");
-    const message = input.value;
+    const message = encodeURI(input.value);
     input.value = "";
     if (message !== "") {
       const query = `

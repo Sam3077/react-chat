@@ -156,9 +156,9 @@ class Login extends Component {
       action = "signup";
       query = `
         mutation {
-          signup(username: "${usernameTextBox.value}", email: "${
-        emailTextBox.value
-      }") {
+          signup(username: "${encodeURI(
+            usernameTextBox.value
+          )}", email: "${encodeURI(emailTextBox.value)}") {
             id
             username
             email
@@ -169,7 +169,7 @@ class Login extends Component {
       action = "login";
       query = `
       query {
-        login(email: "${emailTextBox.value}") {
+        login(email: "${encodeURI(emailTextBox.value)}") {
             id
             username
             email
@@ -181,7 +181,14 @@ class Login extends Component {
     this.client
       .request(query)
       .then(data => {
-        console.log(data[action].id);
+        console.log(data);
+        if (!data || !data[action]) {
+          this.setState({
+            errorMessage: "We couldn't find any users with that email.",
+            error: true
+          });
+          return;
+        }
         this.props.history.replace("/chats", data[action]);
       })
       .catch(e => {

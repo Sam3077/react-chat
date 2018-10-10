@@ -7,11 +7,11 @@ const Wrapper = styled.div`
   border-width: 1px;
   border-top-style: solid;
   border-bottom-style: solid;
-  width: 500px;
   max-height: 75px;
   transition: background-color 0.1s ease;
   padding: 5px;
   padding-left: 10px;
+  padding-right: 10px;
   user-select: none;
 
   &:hover {
@@ -41,6 +41,7 @@ const LastMessage = styled.p`
   text-overflow: ellipsis;
   text-align: left;
   width: 100%;
+  margin-right: 100px;
   margin: 0;
 `;
 export default class ChatListItem extends Component {

@@ -25,7 +25,7 @@ const resolvers = {
   Query: {
     login: (_, args, context, info) => {
       return context.prisma.query.user(
-        { where: { email: args.email } },
+        { where: { email: decodeURI(args.email) } },
         "{ id username email }"
       );
     },
@@ -68,7 +68,7 @@ const resolvers = {
           data: {
             chats: {
               create: {
-                content: args.content,
+                content: decodeURI(args.content),
                 from: {
                   connect: { id: args.from }
                 }
@@ -110,8 +110,9 @@ const resolvers = {
       return conversation;
     },
     signup: (_, args, context, info) => {
-      const email = args.email.toLowerCase();
-      if (args.username.includes("@")) {
+      const email = decodeURI(args.email.toLowerCase());
+      const username = decodeURI(args.username);
+      if (username.includes("@")) {
         throw new Error("Usernames may not contain the @ symbol");
       }
       if (!email.includes("@") || !email.includes(".")) {
@@ -121,8 +122,8 @@ const resolvers = {
         {
           data: {
             email: email,
-            username: args.username,
-            username_lower: args.username.toLowerCase()
+            username: username,
+            username_lower: username.toLowerCase()
           }
         },
         "{ id username email }"
@@ -134,6 +135,9 @@ const resolvers = {
 const server = new GraphQLServer({
   typeDefs: "src/schema.graphql",
   resolvers,
+  resolverValidationOptions: {
+    requireResolversForResolveType: false
+  },
   context: req => ({
     ...req,
     prisma: new Prisma({
@@ -143,6 +147,6 @@ const server = new GraphQLServer({
     })
   })
 });
-server.start({ playground: false }, () =>
+server.start({ playground: true }, () =>
   console.log(`GraphQL server is running on http://localhost:4000`)
 );
