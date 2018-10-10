@@ -1,5 +1,5 @@
 # source: http://localhost:4466
-# timestamp: Mon Oct 08 2018 17:19:35 GMT-0600 (Mountain Daylight Time)
+# timestamp: Wed Oct 10 2018 12:51:11 GMT-0600 (Mountain Daylight Time)
 
 type AggregateChat {
   count: Int!
@@ -495,8 +495,8 @@ type Subscription {
 
 type User implements Node {
   id: ID!
-  username: String
-  username_lower: String
+  username: String!
+  username_lower: String!
   email: String!
   conversations(where: ConversationWhereInput, orderBy: ConversationOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Conversation!]
 }
@@ -512,8 +512,8 @@ type UserConnection {
 }
 
 input UserCreateInput {
-  username: String
-  username_lower: String
+  username: String!
+  username_lower: String!
   email: String!
   conversations: ConversationCreateManyWithoutUsersInput
 }
@@ -529,8 +529,8 @@ input UserCreateOneInput {
 }
 
 input UserCreateWithoutConversationsInput {
-  username: String
-  username_lower: String
+  username: String!
+  username_lower: String!
   email: String!
 }
 
@@ -560,8 +560,8 @@ enum UserOrderByInput {
 
 type UserPreviousValues {
   id: ID!
-  username: String
-  username_lower: String
+  username: String!
+  username_lower: String!
   email: String!
 }
 

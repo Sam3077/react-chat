@@ -3,9 +3,10 @@ import Button from "@material-ui/core/Button";
 import Input from "@material-ui/core/Input";
 import Modal from "@material-ui/core/Modal";
 import styled from "styled-components";
-import { request } from "graphql-request";
+import { GraphQLClient } from "graphql-request";
 import { withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
+import { httpEndpoint } from "../currentEndpoint";
 
 const Row = styled.div`
   display: flex;
@@ -53,6 +54,8 @@ class Login extends Component {
   static propTypes = {
     history: PropTypes.object.isRequired
   };
+
+  client = new GraphQLClient(httpEndpoint);
 
   constructor(props) {
     super(props);
@@ -175,7 +178,8 @@ class Login extends Component {
       `;
     }
 
-    request("http://localhost:4000", query)
+    this.client
+      .request(query)
       .then(data => {
         console.log(data[action].id);
         this.props.history.replace("/chats", data[action]);

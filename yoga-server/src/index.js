@@ -1,6 +1,5 @@
 // @ts-nocheck
-const { GraphQLServer, PubSub } = require("graphql-yoga");
-const WebSocket = require("ws");
+const { GraphQLServer } = require("graphql-yoga");
 const { Prisma } = require("prisma-binding");
 
 const resolvers = {
@@ -15,7 +14,7 @@ const resolvers = {
               }
             }
           },
-          "{ node { id users { username } chats { content from { username } } } }"
+          "{ node { id users { username email } chats { content from { username email } } } }"
         );
       },
       resolve: (payload, args, context, info) => {
@@ -55,7 +54,7 @@ const resolvers = {
     userInfo: (_, args, context, info) => {
       return context.prisma.query.user(
         { where: { id: args.id } },
-        "{ id username conversations { id users { username } chats { content from { username } } } }"
+        "{ id username conversations { id users { username email } chats { content from { username email } } } }"
       );
     }
   },
@@ -140,10 +139,10 @@ const server = new GraphQLServer({
     prisma: new Prisma({
       typeDefs: "src/generated/prisma.graphql",
       endpoint: "http://localhost:4466",
-      secret: "thisismysecret225"
+      secret: "4iTvmdwNvt9y"
     })
   })
 });
-server.start(() =>
+server.start({ playground: false }, () =>
   console.log(`GraphQL server is running on http://localhost:4000`)
 );

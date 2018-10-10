@@ -2,7 +2,8 @@ import React, { Component } from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
 import Snackbar from "@material-ui/core/Snackbar";
-import { request } from "graphql-request";
+import { GraphQLClient } from "graphql-request";
+import { httpEndpoint } from "../currentEndpoint";
 
 const Wrapper = styled.div`
   max-width: 100%;
@@ -50,16 +51,14 @@ const Title = styled.h5`
 `;
 
 export default class Conversation extends Component {
-  static propTypes = {
-    data: PropTypes.object
-  };
+  static propTypes = { data: PropTypes.object };
 
   constructor(props) {
     super(props);
-    this.state = {
-      error: false
-    };
+    this.state = { error: false };
   }
+
+  client = new GraphQLClient(httpEndpoint);
 
   componentDidUpdate() {
     const messages = document.getElementById("messagesContainer");
@@ -74,28 +73,34 @@ export default class Conversation extends Component {
       <Wrapper>
         {data.conversationData ? (
           [
-            <Title>
+            <Title key="title">
               {data.conversationData.users
-                .map(user => user.username)
-                .filter(username => username !== data.username)
+                .filter(user => user.email !== data.email)
+                .map(user => user.email)
                 .join(", ")}
             </Title>,
             <div
               key="1"
-              style={{
-                overflowY: "scroll",
-                height: "100%"
-              }}
+              style={{ overflowY: "scroll", height: "100%" }}
               id="messagesContainer"
+              key="container"
             >
-              {data.conversationData.chats.map((chat, index) => (
-                <p key={index}>
-                  <i>{chat.from.username}</i>: {chat.content}
-                </p>
-              ))}
+              {data.conversationData.chats.map((chat, index) => {
+                let from;
+                if (chat.from.email === data.email) {
+                  from = "You";
+                } else {
+                  from = chat.from.username;
+                }
+                return (
+                  <p key={index}>
+                    <i>{from}</i>: {chat.content}
+                  </p>
+                );
+              })}
             </div>,
             <form
-              key="2"
+              key="form"
               onSubmit={e => {
                 e.preventDefault();
                 this.sendMessage();
@@ -113,7 +118,13 @@ export default class Conversation extends Component {
         <Snackbar
           open={this.state.error}
           message={
-            <p style={{ fontSize: "20px", margin: "5px", userSelect: "none" }}>
+            <p
+              style={{
+                fontSize: "20px",
+                margin: "5px",
+                userSelect: "none"
+              }}
+            >
               An error occurred
             </p>
           }
@@ -140,7 +151,8 @@ export default class Conversation extends Component {
             }
         `;
 
-      request("http://localhost:4000", query)
+      this.client
+        .request(query)
         .then(r => {
           this.forceUpdate();
           const messagesContainer = document.getElementById(

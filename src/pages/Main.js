@@ -4,11 +4,10 @@ import PropTypes from "prop-types";
 import ChatListItem from "../components/ChatListItem";
 import Conversation from "../components/Conversation";
 import styled from "styled-components";
-import { request } from "graphql-request";
+import { GraphQLClient } from "graphql-request";
 import { SubscriptionClient } from "subscriptions-transport-ws";
-import Button from "@material-ui/core/Button";
-import Modal from "@material-ui/core/Modal";
-import Input from "@material-ui/core/Input";
+import { Button, Modal, Input, Snackbar } from "@material-ui/core";
+import { httpEndpoint, wsEndpoint } from "../currentEndpoint";
 
 const SuperContainer = styled.div`
   width: 100vw;
@@ -59,6 +58,7 @@ class Main extends Component {
     history: PropTypes.object.isRequired,
     location: PropTypes.object.isRequired
   };
+  client = new GraphQLClient(httpEndpoint);
 
   constructor(props) {
     super(props);
@@ -66,12 +66,17 @@ class Main extends Component {
       currentConversation: null,
       conversations: [],
       searchedUsers: [],
-      searchOpen: false
+      searchOpen: false,
+      error: false
     };
   }
 
   componentWillMount() {
-    const client = new SubscriptionClient("ws://localhost:4000", {
+    const client = new SubscriptionClient(wsEndpoint, {
+      headers: {
+        Authorization:
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InNlcnZpY2UiOiJkZWZhdWx0QGRlZmF1bHQiLCJyb2xlcyI6WyJhZG1pbiJdfSwiaWF0IjoxNTM5MTk1OTI2LCJleHAiOjE1Mzk4MDA3MjZ9.hNaku3QzydaRc4lMzcXTVNaJxD4MjrWFPBHAVe82mhU"
+      },
       reconnect: true
     });
 
@@ -85,18 +90,20 @@ class Main extends Component {
                     id 
                     users { 
                         username
+                        email
                     } 
                     chats { 
                         content 
                         from { 
                             username 
+                            email
                         } 
                     } 
                 }
             }
         }
     `;
-    request("http://localhost:4000", query).then(r => {
+    this.client.request(query).then(r => {
       this.setState({ conversations: r.userInfo.conversations });
     });
 
@@ -108,10 +115,12 @@ class Main extends Component {
                     id
                     users {
                         username
+                        email
                     }
                     chats {
                         from {
                             username
+                            email
                         }
                         content
                     }
@@ -142,7 +151,10 @@ class Main extends Component {
           this.setState({ conversations });
         }
       },
-      error: err => console.error(err),
+      error: err => {
+        console.error(err);
+        this.setState({ error: true });
+      },
       complete: () => console.log("done!")
     });
   }
@@ -168,7 +180,11 @@ class Main extends Component {
                 const message =
                   conversation.chats[conversation.chats.length - 1];
                 lastMessage = message.content;
-                from = message.from.username;
+                if (message.from.email === location.state.email) {
+                  from = "You";
+                } else {
+                  from = message.from.username;
+                }
               }
 
               return (
@@ -191,6 +207,7 @@ class Main extends Component {
               data={{
                 userId: location.state.id,
                 username: location.state.username,
+                email: location.state.email,
                 conversationData: this.state.currentConversation
               }}
             />
@@ -231,6 +248,17 @@ class Main extends Component {
             ))}
           </SearchContainer>
         </Modal>
+        <Snackbar
+          open={this.state.error}
+          message={
+            <p style={{ fontSize: "20px", margin: "5px", userSelect: "none" }}>
+              An error occurred
+            </p>
+          }
+          autoHideDuration={2000}
+          anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+          onClose={() => this.setState({ error: false })}
+        />
       </div>
     );
   }
@@ -246,7 +274,10 @@ class Main extends Component {
         }
     `;
     this.setState({ searchedUsers: [], searchOpen: false });
-    request("http://localhost:4000", query);
+    this.client.request(query).catch(e => {
+      console.error(e);
+      this.setState({ error: true });
+    });
   };
 
   performUserSearch = () => {
@@ -260,13 +291,19 @@ class Main extends Component {
             }
         }
     `;
-      request("http://localhost:4000", query).then(r => {
-        this.setState({
-          searchedUsers: r.searchUsers.filter(
-            user => user.email !== this.props.location.state.email
-          )
+      this.client
+        .request(query)
+        .then(r => {
+          this.setState({
+            searchedUsers: r.searchUsers.filter(
+              user => user.email !== this.props.location.state.email
+            )
+          });
+        })
+        .catch(e => {
+          console.error(e);
+          this.setState({ error: true });
         });
-      });
     } else {
       this.setState({ searchedUsers: [] });
     }
