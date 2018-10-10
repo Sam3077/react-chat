@@ -7,8 +7,6 @@ import { request } from "graphql-request";
 const Wrapper = styled.div`
   max-width: 100%;
   height: 100%;
-  padding-left: 5%;
-  padding-right: 5%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -20,7 +18,8 @@ const Input = styled.input`
   height: 40px;
   padding-left: 10px;
   border-style: none;
-  margin: 0;
+  margin-top: 0;
+  margin-bottom: 0;
   flex: 1;
 
   &:focus {
@@ -29,6 +28,10 @@ const Input = styled.input`
 `;
 const InputAddOn = styled.div`
   display: flex;
+  margin-left: 5%;
+  margin-right: 5%;
+  margin-bottom: 0;
+  padding-bottom: 0;
 `;
 const Button = styled.button`
   background-color: rgb(200, 200, 200);
@@ -38,6 +41,12 @@ const Button = styled.button`
   border-radius: 0px;
   border-top-right-radius: 20px;
   border-bottom-right-radius: 20px;
+`;
+const Title = styled.h5`
+  margin: 0;
+  padding: 5px;
+  background-color: rgba(255, 255, 255, 0.15);
+  width: 100%;
 `;
 
 export default class Conversation extends Component {
@@ -52,17 +61,33 @@ export default class Conversation extends Component {
     };
   }
 
+  componentDidUpdate() {
+    const messages = document.getElementById("messagesContainer");
+    if (messages) {
+      messages.scrollTop = messages.scrollHeight;
+    }
+  }
+
   render() {
     const { data } = this.props;
-    const messagesContainer = document.getElementById("messagesContainer");
-    if (messagesContainer) {
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
     return (
       <Wrapper>
         {data.conversationData ? (
           [
-            <div key="1" style={{ overflowY: "scroll" }} id="messagesContainer">
+            <Title>
+              {data.conversationData.users
+                .map(user => user.username)
+                .filter(username => username !== data.username)
+                .join(", ")}
+            </Title>,
+            <div
+              key="1"
+              style={{
+                overflowY: "scroll",
+                height: "100%"
+              }}
+              id="messagesContainer"
+            >
               {data.conversationData.chats.map((chat, index) => (
                 <p key={index}>
                   <i>{chat.from.username}</i>: {chat.content}

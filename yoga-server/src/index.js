@@ -27,7 +27,7 @@ const resolvers = {
     login: (_, args, context, info) => {
       return context.prisma.query.user(
         { where: { email: args.email } },
-        "{ id username }"
+        "{ id username email }"
       );
     },
     conversation: (_, args, context, info) => {
@@ -126,7 +126,7 @@ const resolvers = {
             username_lower: args.username.toLowerCase()
           }
         },
-        "{ id username }"
+        "{ id username email }"
       );
     }
   }

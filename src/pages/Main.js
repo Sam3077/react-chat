@@ -6,6 +6,9 @@ import Conversation from "../components/Conversation";
 import styled from "styled-components";
 import { request } from "graphql-request";
 import { SubscriptionClient } from "subscriptions-transport-ws";
+import Button from "@material-ui/core/Button";
+import Modal from "@material-ui/core/Modal";
+import Input from "@material-ui/core/Input";
 
 const SuperContainer = styled.div`
   width: 100vw;
@@ -24,6 +27,31 @@ const ListContainer = styled.div`
 const ConversationContainer = styled.div`
   width: 100%;
 `;
+const SearchContainer = styled.div`
+    position: absolute;
+    top: 40%;
+    left: 25%;
+    right 25%;
+    background-color: white;
+`;
+const SearchResult = styled.p`
+  margin: 0;
+  padding: 10px;
+  user-select: none;
+  border-bottom-style: solid;
+  border-color: black;
+  border-width: 1px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+  }
+
+  &:active {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+`;
 
 class Main extends Component {
   static propTypes = {
@@ -35,7 +63,9 @@ class Main extends Component {
     super(props);
     this.state = {
       currentConversation: null,
-      conversations: []
+      conversations: [],
+      searchedUsers: [],
+      searchOpen: false
     };
   }
 
@@ -66,7 +96,6 @@ class Main extends Component {
         }
     `;
     request("http://localhost:4000", query).then(r => {
-      console.log(r);
       this.setState({ conversations: r.userInfo.conversations });
     });
 
@@ -97,10 +126,9 @@ class Main extends Component {
         );
         let conversations = this.state.conversations;
         if (index >= 0) {
-          conversations[index] = x.data.conversations.node;
-        } else {
-          conversations.push(x.data.conversations.node);
+          conversations.splice(index, 1);
         }
+        conversations.unshift(x.data.conversations.node);
         if (
           this.state.currentConversation &&
           this.state.currentConversation.id === x.data.conversations.node.id
@@ -161,14 +189,86 @@ class Main extends Component {
             <Conversation
               data={{
                 userId: location.state.id,
+                username: location.state.username,
                 conversationData: this.state.currentConversation
               }}
             />
           </ConversationContainer>
+          <Button
+            variant="fab"
+            style={{
+              position: "absolute",
+              left: "25px",
+              bottom: "25px"
+            }}
+            onClick={() => this.setState({ searchOpen: true })}
+          >
+            <h3>+</h3>
+          </Button>
         </SuperContainer>
+        <Modal
+          open={this.state.searchOpen}
+          disableAutoFocus
+          onClose={() =>
+            this.setState({ searchOpen: false, searchedUsers: [] })
+          }
+        >
+          <SearchContainer>
+            <Input
+              fullWidth
+              id="userSearch"
+              onChange={this.performUserSearch}
+            />
+            {this.state.searchedUsers.map((user, index) => (
+              <SearchResult
+                key={index}
+                onClick={() => this.createNewChat(index)}
+              >
+                {user.username}: <i>{user.email}</i>
+              </SearchResult>
+            ))}
+          </SearchContainer>
+        </Modal>
       </div>
     );
   }
+
+  createNewChat = index => {
+    const query = `
+        mutation {
+            newConversation(emails: ["${this.props.location.state.email}", "${
+      this.state.searchedUsers[index].email
+    }"]) {
+                id
+            }
+        }
+    `;
+    this.setState({ searchedUsers: [], searchOpen: false });
+    request("http://localhost:4000", query);
+  };
+
+  performUserSearch = () => {
+    const search = document.getElementById("userSearch");
+    if (search.value !== "") {
+      const query = `
+        query {
+            searchUsers(identifier: "${search.value}") {
+                username
+                email
+            }
+        }
+    `;
+      request("http://localhost:4000", query).then(r => {
+        this.setState({
+          searchedUsers: r.searchUsers.filter(
+            user => user.email !== this.props.location.state.email
+          )
+        });
+      });
+    } else {
+      this.setState({ searchedUsers: [] });
+    }
+  };
 }
 
 export default withRouter(Main);

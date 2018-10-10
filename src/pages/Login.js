@@ -132,7 +132,7 @@ class Login extends Component {
         onBackdropClick={() => this.setState({ error: false })}
         onClose={() => this.setState({ error: false })}
         onClick={() => this.setState({ error: false })}
-        disableAutoFocus={true}
+        disableAutoFocus
         key="4"
       >
         <ErrorPopup>
@@ -158,7 +158,9 @@ class Login extends Component {
       }") {
             id
             username
+            email
         }
+      }
       `;
     } else {
       action = "login";
@@ -167,7 +169,9 @@ class Login extends Component {
         login(email: "${emailTextBox.value}") {
             id
             username
+            email
         }
+      }
       `;
     }
 

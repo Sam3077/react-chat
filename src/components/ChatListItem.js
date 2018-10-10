@@ -62,7 +62,7 @@ export default class ChatListItem extends Component {
             <i>{from}</i>: {lastMessage}
           </LastMessage>
         ) : (
-          <LastMessage>"New conversation"</LastMessage>
+          <LastMessage>New conversation</LastMessage>
         )}
       </Wrapper>
     );
