@@ -158,19 +158,6 @@ class Login extends Component {
       }") {
             id
             username
-            conversations {
-              id
-              users {
-                username
-              }
-              chats {
-                content
-                from {
-                  username
-                }
-              }
-            }
-          }
         }
       `;
     } else {
@@ -180,19 +167,6 @@ class Login extends Component {
         login(email: "${emailTextBox.value}") {
             id
             username
-            conversations {
-              id
-              users {
-                username
-              }
-              chats {
-                content
-                from {
-                  username
-                }
-              }
-            }
-          }
         }
       `;
     }

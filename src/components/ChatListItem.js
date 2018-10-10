@@ -11,6 +11,7 @@ const Wrapper = styled.div`
   max-height: 75px;
   transition: background-color 0.1s ease;
   padding: 5px;
+  padding-left: 10px;
   user-select: none;
 
   &:hover {

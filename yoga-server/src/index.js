@@ -15,7 +15,7 @@ const resolvers = {
               }
             }
           },
-          "{ node { id chats { content from { username } } } }"
+          "{ node { id users { username } chats { content from { username } } } }"
         );
       },
       resolve: (payload, args, context, info) => {
@@ -27,7 +27,7 @@ const resolvers = {
     login: (_, args, context, info) => {
       return context.prisma.query.user(
         { where: { email: args.email } },
-        "{ id username conversations { id users { username } chats { content from { username } } } }"
+        "{ id username }"
       );
     },
     conversation: (_, args, context, info) => {
@@ -51,6 +51,12 @@ const resolvers = {
         },
         "{ username email }"
       );
+    },
+    userInfo: (_, args, context, info) => {
+      return context.prisma.query.user(
+        { where: { id: args.id } },
+        "{ id username conversations { id users { username } chats { content from { username } } } }"
+      );
     }
   },
   Mutation: {
@@ -71,7 +77,7 @@ const resolvers = {
             }
           }
         },
-        "{ chats { content from { username } } }"
+        "{ id }"
       );
     },
     newConversation: (_, args, context, info) => {
@@ -120,7 +126,7 @@ const resolvers = {
             username_lower: args.username.toLowerCase()
           }
         },
-        "{ id username conversations { id users { username } chats { content from { username } } } }"
+        "{ id username }"
       );
     }
   }
