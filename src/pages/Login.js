@@ -4,20 +4,9 @@ import Input from "@material-ui/core/Input";
 import Modal from "@material-ui/core/Modal";
 import styled from "styled-components";
 import { request } from "graphql-request";
+import { withRouter } from "react-router-dom";
+import PropTypes from "prop-types";
 
-const Wrapper = styled.div`
-  text-align: center;
-`;
-const Header = styled.header`
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-`;
 const Row = styled.div`
   display: flex;
   flex-direction: row;
@@ -61,6 +50,10 @@ const NoMarginPopup = styled.h5`
 `;
 
 class Login extends Component {
+  static propTypes = {
+    history: PropTypes.object.isRequired
+  };
+
   constructor(props) {
     super(props);
     this.state = {
@@ -75,81 +68,78 @@ class Login extends Component {
   }
 
   render() {
-    return (
-      <Wrapper>
-        <Header>
-          <p>Please Login or Create an Account</p>
-          <Row>
-            <StyledButton
-              color="primary"
-              variant="outlined"
-              onClick={() => this.setState({ create: false })}
-            >
-              <ButtonText>Login</ButtonText>
-            </StyledButton>
-            <Spacer />
-            <StyledButton
-              color="primary"
-              variant="outlined"
-              onClick={() => this.setState({ create: true })}
-              autoFocus
-            >
-              <ButtonText>Create Account</ButtonText>
-            </StyledButton>
-          </Row>
-          <Form onSubmit={this.authenticate} id="form">
-            {this.state.create ? (
-              [
-                <StyledInput
-                  type="text"
-                  placeholder="Username"
-                  required
-                  name="username"
-                  id="username"
-                  key={1}
-                />,
-                <StyledInput
-                  type="email"
-                  placeholder="Email"
-                  required
-                  name="email"
-                  id="email"
-                  key={2}
-                  onChange={() =>
-                    document.getElementById("email").setCustomValidity("")
-                  }
-                />
-              ]
-            ) : (
-              <StyledInput
-                type="email"
-                placeholder="Email"
-                required
-                name="email"
-                id="email"
-                onChange={() =>
-                  document.getElementById("email").setCustomValidity("")
-                }
-              />
-            )}
-            <Input type="submit" readOnly disableUnderline>
-              <ButtonText>Submit</ButtonText>
-            </Input>
-          </Form>
-          <Modal
-            open={this.state.error}
-            onBackdropClick={() => this.setState({ error: false })}
-            onClose={() => this.setState({ error: false })}
-            onClick={() => this.setState({ error: false })}
-            disableAutoFocus={true}
-          >
-            <ErrorPopup>
-              <NoMarginPopup>{this.state.errorMessage}</NoMarginPopup>
-            </ErrorPopup>
-          </Modal>
-        </Header>
-      </Wrapper>
-    );
+    return [
+      <p key="1">Please Login or Create an Account</p>,
+      <Row key="2">
+        <StyledButton
+          color="primary"
+          variant="outlined"
+          onClick={() => this.setState({ create: false })}
+        >
+          <ButtonText>Login</ButtonText>
+        </StyledButton>
+        <Spacer />
+        <StyledButton
+          color="primary"
+          variant="outlined"
+          onClick={() => this.setState({ create: true })}
+          autoFocus
+        >
+          <ButtonText>Create Account</ButtonText>
+        </StyledButton>
+      </Row>,
+      <Form onSubmit={this.authenticate} id="form" key="3">
+        {this.state.create ? (
+          [
+            <StyledInput
+              type="text"
+              placeholder="Username"
+              required
+              name="username"
+              id="username"
+              key={1}
+            />,
+            <StyledInput
+              type="email"
+              placeholder="Email"
+              required
+              name="email"
+              id="email"
+              key={2}
+              onChange={() =>
+                document.getElementById("email").setCustomValidity("")
+              }
+            />
+          ]
+        ) : (
+          <StyledInput
+            type="email"
+            placeholder="Email"
+            required
+            name="email"
+            id="email"
+            onChange={() =>
+              document.getElementById("email").setCustomValidity("")
+            }
+          />
+        )}
+        <Input type="submit" readOnly disableUnderline>
+          <ButtonText>Submit</ButtonText>
+        </Input>
+      </Form>,
+      <Modal
+        open={this.state.error}
+        onBackdropClick={() => this.setState({ error: false })}
+        onClose={() => this.setState({ error: false })}
+        onClick={() => this.setState({ error: false })}
+        disableAutoFocus={true}
+        key="4"
+      >
+        <ErrorPopup>
+          <NoMarginPopup>{this.state.errorMessage}</NoMarginPopup>
+        </ErrorPopup>
+      </Modal>
+    ];
   }
 
   authenticate = e => {
@@ -167,6 +157,19 @@ class Login extends Component {
         emailTextBox.value
       }") {
             id
+            username
+            conversations {
+              id
+              users {
+                username
+              }
+              chats {
+                content
+                from {
+                  username
+                }
+              }
+            }
           }
         }
       `;
@@ -175,36 +178,51 @@ class Login extends Component {
       query = `
       query {
         login(email: "${emailTextBox.value}") {
-          id
+            id
+            username
+            conversations {
+              id
+              users {
+                username
+              }
+              chats {
+                content
+                from {
+                  username
+                }
+              }
+            }
+          }
         }
-      }
       `;
     }
 
     request("http://localhost:4000", query)
       .then(data => {
         console.log(data[action].id);
+        this.props.history.replace("/chats", data[action]);
       })
       .catch(e => {
-        console.error(JSON.stringify(e, undefined, 2));
-        // const code = e.response.errors[0].code;
-        const code = 0;
-        console.log(code);
-
+        console.error(e);
         let errorMessage;
-        switch (code) {
-          case 20:
-            errorMessage = "We couldn't find any users with that email.";
-            break;
-          case 3010:
-            errorMessage = "A user already exists for that email.";
-            break;
-          default:
-            errorMessage = "An error occurred. Please try again.";
+
+        if (e.message && e.message === "Cannot read property 'id' of null") {
+          errorMessage = "We couldn't find any users with that email.";
+        } else if (
+          e.response &&
+          e.response.errors[0].message ===
+            "Usernames may not contain the @ symbol"
+        ) {
+          errorMessage = "Usernames may not contain the @ symbol.";
+        } else if (e.response && e.response.errors[0].code === 3010) {
+          errorMessage =
+            'A user is already registered under that email. Please select "Login"';
+        } else {
+          errorMessage = "An error occurred. Please try again.";
         }
         this.setState({ errorMessage, error: true });
       });
   };
 }
 
-export default Login;
+export default withRouter(Login);
