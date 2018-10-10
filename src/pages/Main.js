@@ -33,6 +33,7 @@ const SearchContainer = styled.div`
     left: 25%;
     right 25%;
     background-color: white;
+    border-radius: 5px;
 `;
 const SearchResult = styled.p`
   margin: 0;
@@ -218,6 +219,7 @@ class Main extends Component {
               fullWidth
               id="userSearch"
               onChange={this.performUserSearch}
+              placeholder="Search for a user..."
             />
             {this.state.searchedUsers.map((user, index) => (
               <SearchResult
