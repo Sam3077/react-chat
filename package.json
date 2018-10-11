@@ -14,12 +14,10 @@
     "subscriptions-transport-ws": "^0.9.15"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "concurrently \"cd yoga-server && prisma deploy && node src/index.js\" \"npm run serve\"",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "postinstall": "npm install && cd yoga-server && npm install",
-    "preserve": "react-scripts build",
+    "install-dependencies": "npm install && cd yoga-server && npm install",
+    "preserve": "npm run build",
     "serve": "serve -s build"
   },
   "eslintConfig": {
@@ -31,6 +29,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "concurrently": "^4.0.1",
     "serve": "^10.0.2"
   }
 }

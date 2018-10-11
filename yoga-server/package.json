@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "update-schema": "graphql get-schema --project prisma"
+    "update-schema": "graphql get-schema --project prisma",
+    "postinstall": "docker-compose up -d"
   },
   "keywords": [],
   "author": "",
