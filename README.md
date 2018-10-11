@@ -22,13 +22,13 @@ This application is a simple chat application built with GraphQL and Prisma (bac
 
 - `npm run start`
 
-6. You can connect to the application on the local machine at `http://localhost:4000` or on the network at `http://[Your IP address]:4000`
+6. You can connect to the application on the local machine at `http://localhost:5000` or on the network at `http://[Your IP address]:5000`
 
 ## Usage instructions
 
-1. Connect to either `http://localhost:4000` or `http://[Your IP address]:4000`
+1. Connect to either `http://localhost:5000` or `http://[Your IP address]:5000`
 2. Create a new account by entering a username and email address
-3. Either have someone else connect to `http://[Your IP address]:4000` and create an account or open a new window and create a new account
+3. Either have someone else connect to `http://[Your IP address]:5000` and create an account or open a new window and create a new account
 4. Click the plus button in the bottom left and search for the other user by their username or email address
 5. Click their name to start a new conversation with them
 6. Select the conversation from the list on the left and start sending messages

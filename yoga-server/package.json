@@ -16,8 +16,5 @@
     "prisma-binding": "^2.1.6",
     "ws": "^6.1.0"
   },
-  "devDependencies": {
-    "docker": "^1.0.0",
-    "prisma": "^1.18.0"
-  }
+  "devDependencies": {}
 }

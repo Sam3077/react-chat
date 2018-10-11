@@ -30,6 +30,7 @@
   ],
   "devDependencies": {
     "concurrently": "^4.0.1",
+    "prisma": "^1.18.0",
     "serve": "^10.0.2"
   }
 }
