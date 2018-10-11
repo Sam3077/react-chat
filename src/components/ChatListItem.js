@@ -44,6 +44,11 @@ const LastMessage = styled.p`
   margin-right: 100px;
   margin: 0;
 `;
+
+/**
+ * This class defines a ChatListItem UI.
+ * ChatListItems simply display who is in the chat and the previous message sent
+ */
 export default class ChatListItem extends Component {
   static propTypes = {
     title: PropTypes.string.isRequired,

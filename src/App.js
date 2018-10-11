@@ -18,6 +18,9 @@ const Header = styled.header`
   color: white;
 `;
 
+/**
+ * This class is simply here to define some global style and routes for React Router
+ */
 class App extends Component {
   render() {
     return (

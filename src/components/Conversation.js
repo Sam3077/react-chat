@@ -65,6 +65,11 @@ const SingleMessage = styled.p`
   padding-bottom: 25px;
 `;
 
+/**
+ * This class defined the UI and functionality of the Conversation element.
+ * It will parse and display conversation data passed to it as well as perform mutation queries
+ * to send new messages.
+ */
 export default class Conversation extends Component {
   static propTypes = { data: PropTypes.object };
 
@@ -73,9 +78,11 @@ export default class Conversation extends Component {
     this.state = { error: false };
   }
 
+  // Creates a client for handling queries.
   client = new GraphQLClient(httpEndpoint);
 
   componentDidUpdate() {
+    // Scrolls to the bottom when the component is rendered and when new chats show up
     const messages = document.getElementById("messagesContainer");
     if (messages) {
       messages.scrollTop = messages.scrollHeight;
@@ -148,7 +155,11 @@ export default class Conversation extends Component {
 
   sendMessage = () => {
     const input = document.getElementById("messageContainer");
+
+    // the input must be encoded so that it doesn't mess with the query
     const message = encodeURI(input.value);
+
+    // remove message from the input field
     input.value = "";
     if (message !== "") {
       const query = `
@@ -161,19 +172,10 @@ export default class Conversation extends Component {
             }
         `;
 
-      this.client
-        .request(query)
-        .then(r => {
-          this.forceUpdate();
-          const messagesContainer = document.getElementById(
-            "messagesContainer"
-          );
-          messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        })
-        .catch(e => {
-          console.error(e);
-          this.setState({ error: true });
-        });
+      this.client.request(query).catch(e => {
+        console.error(e);
+        this.setState({ error: true });
+      });
     }
   };
 }

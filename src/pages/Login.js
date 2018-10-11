@@ -50,7 +50,13 @@ const NoMarginPopup = styled.h5`
   padding: 0;
 `;
 
+/**
+ * This class is the first page the user sees that prompts them to either create an
+ * account or to log in. When submitted, the application receives either the username, email,
+ * and id of the user, or an error message that is handled with a popup shown to the user.
+ */
 class Login extends Component {
+  // History is provided by the withRouter method from react-router-dom and gives a way to navigate.
   static propTypes = {
     history: PropTypes.object.isRequired
   };
@@ -64,10 +70,6 @@ class Login extends Component {
       errorMessage: "",
       error: false
     };
-  }
-
-  componentDidMount() {
-    document.getElementById("email").setCustomValidity(this.state.errorMessage);
   }
 
   render() {
@@ -151,7 +153,11 @@ class Login extends Component {
     const emailTextBox = document.getElementById("email");
 
     let query;
+
+    // action is needed because the query action is the first element in the response JSON
     let action;
+
+    // if the username text box rendered, the user is trying to create a new account
     if (usernameTextBox) {
       action = "signup";
       query = `
@@ -178,6 +184,7 @@ class Login extends Component {
       `;
     }
 
+    // performs a request to the public GraphQL API
     this.client
       .request(query)
       .then(data => {

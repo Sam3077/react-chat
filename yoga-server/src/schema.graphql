@@ -1,3 +1,4 @@
+# These comments are actually necessary to import the data schemas
 # import User from './generated/prisma.graphql'
 # import Chat from './generated/prisma.graphql'
 # import Conversation from './generated/prisma.graphql'

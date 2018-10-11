@@ -56,17 +56,29 @@ const SearchResult = styled.p`
   }
 `;
 
+/**
+ * This class is the main portion of the application.
+ * This contains the UI for the list of conversations as well as a specific conversation
+ * (although those UIs are actually implemented as seperate components).
+ *
+ * This class also performs network requests for receiving conversation data.
+ */
 class Main extends Component {
+  // History and location are again provided by react-router-dom
   static propTypes = {
     history: PropTypes.object.isRequired,
     location: PropTypes.object.isRequired
   };
+
+  // Creates a new client for handling requests to our API
   client = new GraphQLClient(httpEndpoint);
 
   constructor(props) {
     super(props);
     this.state = {
+      // currentConversation will be set when the user selects a conversation
       currentConversation: null,
+      // conversations will be set when the data request returns
       conversations: [],
       searchedUsers: [],
       searchOpen: false,
@@ -75,11 +87,12 @@ class Main extends Component {
   }
 
   componentWillMount() {
+    // This client will manage listening for conversation updates
     const client = new SubscriptionClient(wsEndpoint, {
       reconnect: true
     });
 
-    // Request initial chat stat
+    // Request initial chat information
     const query = `
         query {
             userInfo(id: "${this.props.location.state.id}") {
@@ -133,10 +146,15 @@ class Main extends Component {
           element => element.id === x.data.conversations.node.id
         );
         let conversations = this.state.conversations;
+
+        // If the conversation is already in the list of conversations, remove it from the list
         if (index >= 0) {
           conversations.splice(index, 1);
         }
+        // Push the updated conversation to the front of the list (will bring it to the top of the list in the UI)
         conversations.unshift(x.data.conversations.node);
+
+        // If the conversation is currently open, update the currentConversation data as well
         if (
           this.state.currentConversation &&
           this.state.currentConversation.id === x.data.conversations.node.id
@@ -159,6 +177,8 @@ class Main extends Component {
 
   render() {
     const { history, location } = this.props;
+
+    // If we don't have user account data redirect to the login page
     if (!location.state || !location.state.id) {
       history.replace("/");
     }
@@ -167,6 +187,7 @@ class Main extends Component {
         <SuperContainer>
           <ListContainer>
             <h5 style={{ margin: 0 }}>Conversations</h5>
+            {/*The following parses conversation data and renders the conversation list*/}
             {this.state.conversations.map((conversation, index) => {
               const title = conversation.users
                 .map(user => user.username)
@@ -201,6 +222,7 @@ class Main extends Component {
             })}
           </ListContainer>
           <ConversationContainer>
+            {/*The data inside this conversation will be updated whenever currentConversation is changed*/}
             <Conversation
               data={{
                 userId: location.state.id,
@@ -271,6 +293,8 @@ class Main extends Component {
             }
         }
     `;
+
+    // Closes the search modal
     this.setState({ searchedUsers: [], searchOpen: false });
     this.client.request(query).catch(e => {
       console.error(e);
@@ -283,7 +307,7 @@ class Main extends Component {
     if (search.value !== "") {
       const query = `
         query {
-            searchUsers(identifier: "${search.value}") {
+            searchUsers(identifier: "${encodeURI(search.value)}") {
                 username
                 email
             }
@@ -303,6 +327,7 @@ class Main extends Component {
           this.setState({ error: true });
         });
     } else {
+      // When the search bar is empty, just clear the returned users
       this.setState({ searchedUsers: [] });
     }
   };

@@ -16,6 +16,7 @@
   "scripts": {
     "start": "concurrently \"cd yoga-server && prisma deploy && node src/index.js\" \"npm run serve\"",
     "build": "react-scripts build",
+    "develop": "react-scripts start",
     "install-dependencies": "npm install && cd yoga-server && npm install",
     "preserve": "npm run build",
     "serve": "serve -s build"

@@ -1,3 +1,5 @@
+# Users have conversations and user metadata
+# Note the unique tag by email, no two users can have the same email
 type User {
   id: ID! @unique
   username: String!
@@ -7,12 +9,15 @@ type User {
     @relation(name: "ConversationsByUser", onDelete: SET_NULL)
 }
 
+# Chats only contain their content and the user that sent the chat
 type Chat {
   id: ID! @unique
   content: String
   from: User!
 }
 
+# Conversations contain metadata and a list of users and a list of chats
+# When a conversation is deleted all sub-chats are deleted as well
 type Conversation {
   id: ID! @unique
   users: [User!]! @relation(name: "ConversationsByUser")
