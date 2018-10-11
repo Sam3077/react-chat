@@ -146,10 +146,11 @@ class Main extends Component {
           element => element.id === x.data.conversations.node.id
         );
         let conversations = this.state.conversations;
-
+        let isNewConversation = true;
         // If the conversation is already in the list of conversations, remove it from the list
         if (index >= 0) {
           conversations.splice(index, 1);
+          isNewConversation = false;
         }
         // Push the updated conversation to the front of the list (will bring it to the top of the list in the UI)
         conversations.unshift(x.data.conversations.node);
@@ -165,6 +166,26 @@ class Main extends Component {
           });
         } else {
           this.setState({ conversations });
+
+          // Create a notification for the new data
+          if (isNewConversation) {
+            const notification = new Notification(
+              "You've been added to a new conversation!"
+            );
+          } else {
+            const notification = new Notification(
+              "New message from " +
+                x.data.conversations.node.chats[
+                  x.data.conversations.node.chats.length - 1
+                ].from.username,
+              {
+                body:
+                  x.data.conversations.node.chats[
+                    x.data.conversations.node.chats.length - 1
+                  ].content
+              }
+            );
+          }
         }
       },
       error: err => {
@@ -173,6 +194,10 @@ class Main extends Component {
       },
       complete: () => console.log("done!")
     });
+  }
+
+  componentDidMount() {
+    Notification.requestPermission();
   }
 
   render() {
